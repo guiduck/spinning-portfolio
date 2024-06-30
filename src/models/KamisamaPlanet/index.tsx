@@ -6,18 +6,47 @@ Source: https://sketchfab.com/3d-models/kamisama-no-shinden-b6dbdf5e61c845d5925d
 Title: Kamisama no Shinden
 */
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 
 import KamisamaPlanetScene from "@/assets/3d/kamisamaPlanet.glb";
 
 import { a } from "@react-spring/three";
-import { GLTFResult } from "./types";
+import { GLTFResult, KamisamaPlanetProps } from "./types";
 
-export function KamisamaPlanet(props: JSX.IntrinsicElements["group"]) {
+export const KamisamaPlanet: React.FC<
+  KamisamaPlanetProps & JSX.IntrinsicElements["group"]
+> = ({ isRotating, setIsRotating, ...props }) => {
   const planetRef = useRef(null);
+
+  const { gl, viewPort } = useThree();
   const { nodes, materials } = useGLTF(KamisamaPlanetScene) as GLTFResult;
+
+  const lastX = useRef(0);
+  const rotationSpeed = useRef(0);
+  const dampingFactor = 0.95;
+
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsRotating(true);
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    lastX.current = clientX;
+  };
+
+  const handlePointerUp = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsRotating(false);
+  };
+
+  const handlePointerMove = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   return (
     <a.group {...props} ref={planetRef}>
       <group name="Sketchfab_Scene">
@@ -450,6 +479,6 @@ export function KamisamaPlanet(props: JSX.IntrinsicElements["group"]) {
       </group>
     </a.group>
   );
-}
+};
 
 export default KamisamaPlanet;

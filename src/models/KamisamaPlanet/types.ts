@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
+export interface KamisamaPlanetProps {
+  isRotating: boolean;
+  setIsRotating: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 export type GLTFResult = GLTF & {
   nodes: {
     Icosphere_1: THREE.Mesh;

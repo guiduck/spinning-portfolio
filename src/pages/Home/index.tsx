@@ -5,7 +5,7 @@ import Plane from "@/models/Plane";
 import Sky from "@/models/Sky";
 import { Html } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import { Vector3 } from "three";
 
 // const caioSamaPlanet = (
@@ -23,36 +23,53 @@ import { Vector3 } from "three";
 //     </div>
 //   </Html>
 // );
+type rotationType = [x: number, y: number, z: number];
+
+const adjustPlanetForScreenSize: () => [
+  Vector3,
+  Vector3,
+  rotationType
+] = () => {
+  let screenScale = new Vector3(1, 1, 1);
+  let screenPosition = new Vector3(0, -0.5, 2.4);
+  const rotation: rotationType = [0.52, 0, 0];
+
+  if (window.innerWidth < 768) {
+    screenScale = new Vector3(0.9, 0.9, 0.9);
+  } else {
+    screenPosition = new Vector3(0, -0.7, 2.7);
+  }
+
+  return [screenScale, screenPosition, rotation];
+};
+
+const adjustPlaneForScreenSize: () => [Vector3, Vector3, rotationType] = () => {
+  let screenScale = new Vector3(3, 3, 3);
+  let screenPosition = new Vector3(0, -4, -4);
+
+  if (window.innerWidth < 768) {
+    screenScale = new Vector3(1.5, 1.5, 1.5);
+    screenPosition = new Vector3(0, -1.5, 0);
+  }
+
+  return [screenScale, screenPosition];
+};
 
 export const Home: React.FC = () => {
-  type rotationType = [x: number, y: number, z: number];
-  const adjustPlanetForScreenSize: () => [
-    Vector3,
-    Vector3,
-    rotationType
-  ] = () => {
-    let screenScale = new Vector3(1, 1, 1);
-    let screenPosition = new Vector3(0, -0.5, 2.4);
-    // const rotation: rotationType = [0.1, 4.7, 0];
-    const rotation: rotationType = [0.52, 0, 0];
-
-    if (window.innerWidth < 768) {
-      screenScale = new Vector3(0.9, 0.9, 0.9);
-    } else {
-      screenPosition = new Vector3(0, -0.7, 2.7);
-    }
-
-    return [screenScale, screenPosition, rotation];
-  };
+  const [isRotating, setIsRotating] = useState(false);
 
   const [planetScale, planetPosition, planetRotation] =
     adjustPlanetForScreenSize();
+
+  const [planeScale, planePosition] = adjustPlaneForScreenSize();
 
   return (
     <section className="w-full h-screen relative">
       {/* <Dialog /> */}
       <Canvas
-        className="w-full h-screen bg-transparent"
+        className={`w-full h-screen bg-transparent ${
+          isRotating ? "cursor-grabbing" : "cursor-grab"
+        }`}
         camera={{ near: 0.1, far: 1000 }}
       >
         <Suspense fallback={<Loader />}>
@@ -75,8 +92,15 @@ export const Home: React.FC = () => {
             scale={planetScale}
             position={planetPosition}
             rotation={planetRotation}
+            isRotating={isRotating}
+            setIsRotating={setIsRotating}
           />
-          <Plane />
+          <Plane
+            scale={planeScale}
+            position={planePosition}
+            isRotating={isRotating}
+            rotation={[0, 20, 0]}
+          />
           {/* {caioSamaPlanet} */}
         </Suspense>
       </Canvas>
