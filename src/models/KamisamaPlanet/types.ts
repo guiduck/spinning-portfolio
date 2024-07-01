@@ -1,9 +1,12 @@
+import { Dispatch, SetStateAction } from "react";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 
 export interface KamisamaPlanetProps {
   isRotating: boolean;
   setIsRotating: React.Dispatch<React.SetStateAction<boolean>>;
+  currentStage: number | null;
+  setCurrentStage: Dispatch<SetStateAction<number | null>>;
 }
 
 export type GLTFResult = GLTF & {

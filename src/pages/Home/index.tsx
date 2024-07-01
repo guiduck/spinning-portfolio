@@ -44,18 +44,19 @@ const adjustPlanetForScreenSize: () => [
 };
 
 const adjustPlaneForScreenSize: () => [Vector3, Vector3, rotationType] = () => {
-  let screenScale = new Vector3(3, 3, 3);
-  let screenPosition = new Vector3(0, -4, -4);
+  let screenScale = new Vector3(0.2, 0.2, 0.2);
+  let screenPosition = new Vector3(-0.2, 0.2, 4);
 
   if (window.innerWidth < 768) {
-    screenScale = new Vector3(1.5, 1.5, 1.5);
-    screenPosition = new Vector3(0, -1.5, 0);
+    screenScale = new Vector3(0.15, 0.15, 0.15);
+    screenPosition = new Vector3(-0.2, 0.2, 4);
   }
 
   return [screenScale, screenPosition];
 };
 
 export const Home: React.FC = () => {
+  const [currentStage, setCurrentStage] = useState<number | null>(0);
   const [isRotating, setIsRotating] = useState(false);
 
   const [planetScale, planetPosition, planetRotation] =
@@ -94,6 +95,8 @@ export const Home: React.FC = () => {
             rotation={planetRotation}
             isRotating={isRotating}
             setIsRotating={setIsRotating}
+            currentStage={currentStage}
+            setCurrentStage={setCurrentStage}
           />
           <Plane
             scale={planeScale}
