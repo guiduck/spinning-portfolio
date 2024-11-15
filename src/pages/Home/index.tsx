@@ -3,7 +3,6 @@ import Bird from "@/models/Bird";
 import { KamisamaPlanet } from "@/models/KamisamaPlanet";
 import Plane from "@/models/Plane";
 import Sky from "@/models/Sky";
-import { Html } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import React, { Suspense, useState } from "react";
 import { Vector3 } from "three";
@@ -43,7 +42,7 @@ const adjustPlanetForScreenSize: () => [
   return [screenScale, screenPosition, rotation];
 };
 
-const adjustPlaneForScreenSize: () => [Vector3, Vector3, rotationType] = () => {
+const adjustPlaneForScreenSize: () => [Vector3, Vector3] = () => {
   let screenScale = new Vector3(0.2, 0.2, 0.2);
   let screenPosition = new Vector3(-0.2, 0.2, 4);
 
@@ -67,6 +66,7 @@ export const Home: React.FC = () => {
   return (
     <section className="w-full h-screen relative">
       {/* <Dialog /> */}
+
       <Canvas
         className={`w-full h-screen bg-transparent ${
           isRotating ? "cursor-grabbing" : "cursor-grab"

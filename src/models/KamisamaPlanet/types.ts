@@ -9,7 +9,7 @@ export interface KamisamaPlanetProps {
   setCurrentStage: Dispatch<SetStateAction<number | null>>;
 }
 
-export type GLTFResult = GLTF & {
+export type KamisamaPlanetGLTFResult = GLTF & {
   nodes: {
     Icosphere_1: THREE.Mesh;
     Icosphere_2: THREE.Mesh;

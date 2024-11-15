@@ -12,8 +12,10 @@ import { useFrame, useThree } from "@react-three/fiber";
 
 import KamisamaPlanetScene from "@/assets/3d/kamisamaPlanet.glb";
 
+import * as THREE from "three";
+
 import { a } from "@react-spring/three";
-import { GLTFResult, KamisamaPlanetProps } from "./types";
+import { KamisamaPlanetGLTFResult, KamisamaPlanetProps } from "./types";
 
 export const KamisamaPlanet: React.FC<
   KamisamaPlanetProps & JSX.IntrinsicElements["group"]
@@ -27,7 +29,9 @@ export const KamisamaPlanet: React.FC<
   const planetRef = useRef(null);
 
   const { gl, viewport } = useThree();
-  const { nodes, materials } = useGLTF(KamisamaPlanetScene) as GLTFResult;
+  const { nodes, materials } = useGLTF(
+    KamisamaPlanetScene
+  ) as KamisamaPlanetGLTFResult;
 
   const lastX = useRef(0);
   const rotationSpeed = useRef(0);
@@ -91,7 +95,7 @@ export const KamisamaPlanet: React.FC<
         planetRef.current.rotation.y += rotationSpeed.current * 2;
       }
     } else {
-      const rotation = planetRef.current.rotation.y;
+      const rotation = planetRef.current?.rotation.y;
 
       /**
        * Normalize the rotation value to ensure it stays within the range [0, 2 * Math.PI].
@@ -150,6 +154,29 @@ export const KamisamaPlanet: React.FC<
     };
   }, [gl, handlePointerDown, handlePointerUp, handlePointerMove]);
 
+  const createDynamicTexture = (color) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+    context.fillStyle = color;
+    context.fillRect(0, 0, 512, 512);
+    return new THREE.CanvasTexture(canvas);
+  };
+
+  useEffect(() => {
+    // const color = "#ff0000"; // Example color
+    // const dynamicTexture = createDynamicTexture(color);
+
+    // // Apply the dynamic texture to a specific material
+    // materials["Material.002"].map = dynamicTexture;
+    // materials["Material.002"].needsUpdate = true;
+    const color = new THREE.Color("#ff0000"); // Example color
+
+    // Change the color of the material
+    materials["Material.002"].color = color;
+  }, [materials]);
+
   return (
     <a.group {...props} ref={planetRef}>
       <group name="Sketchfab_Scene">
@@ -168,7 +195,8 @@ export const KamisamaPlanet: React.FC<
               <mesh
                 name="Icosphere_2"
                 geometry={nodes.Icosphere_2.geometry}
-                material={materials["Material.013"]}
+                // material={materials["Material.013"]}
+                material={materials["Material.002"]}
               />
             </group>
             <group name="Icosphere001" position={[0, 0, 1]}>
