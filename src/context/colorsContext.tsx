@@ -3,11 +3,15 @@ import { ColorPicker } from "@/components/ColorPicker";
 import KamisamaPlanetScene from "@/assets/3d/kamisamaPlanet.glb";
 import { ObjectKeys } from "./types";
 
+type ColorMap = Record<string, string>;
+
 type ColorPickerProps = {
   setShowColorPicker: Dispatch<React.SetStateAction<boolean>>;
   showColorPicker: boolean;
   selectedObject: ObjectKeys;
   setSelectedObject: Dispatch<React.SetStateAction<ObjectKeys>>;
+  colorMap: ColorMap;
+  setColorMap: Dispatch<React.SetStateAction<ColorMap>>;
 };
 
 type ColorPickerContextProviderProps = {
@@ -23,6 +27,8 @@ const initialState: ColorPickerProps = {
   showColorPicker: false,
   selectedObject: "KamisamaPlanet",
   setSelectedObject: () => {},
+  colorMap: {},
+  setColorMap: () => {},
 };
 
 const ColorPickerContext = createContext<ColorPickerProps>(initialState);
@@ -37,6 +43,7 @@ const ColorPickerContextProvider = ({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [selectedObject, setSelectedObject] =
     useState<ObjectKeys>("KamisamaPlanet");
+  const [colorMap, setColorMap] = useState<ColorMap>({});
 
   const renderColorPicker = () => {
     if (!showColorPicker) {
@@ -51,8 +58,10 @@ const ColorPickerContextProvider = ({
       showColorPicker,
       selectedObject,
       setSelectedObject,
+      colorMap,
+      setColorMap,
     }),
-    [showColorPicker, selectedObject, setSelectedObject, setShowColorPicker]
+    [showColorPicker, selectedObject, colorMap]
   );
 
   return (

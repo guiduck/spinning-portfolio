@@ -1,5 +1,3 @@
-import * as THREE from "three";
-import { a } from "@react-spring/three";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import planeScene from "@/assets/3d/plane.glb";
 import { PlaneProps } from "./types";

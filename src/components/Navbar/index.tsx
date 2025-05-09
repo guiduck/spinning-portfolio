@@ -7,13 +7,14 @@ export const Navbar = () => {
   const onClick = () => {
     setShowColorPicker(true);
   };
+
   return (
     <header className="header">
       <NavLink
         to="/"
         className="w-10 h-10 rounded-lg bg-white items-center justify-center flex font-bold shadow-md"
       >
-        <p className="blue-gradient_text">GH</p>
+        <p className="blue-gradient_text">GF</p>
       </NavLink>
       <button
         type="button"

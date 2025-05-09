@@ -1,9 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import ReactDOM from "react-dom";
-import { ChromePicker } from "react-color";
 import { ObjectsMap } from "@/context/colorsContext";
 import { useGLTF } from "@react-three/drei";
-import * as THREE from "three";
 import { GLTFResult } from "@/context/types";
 import { ColorPickerContext } from "@/context/colorsContext";
 
@@ -12,37 +10,22 @@ export interface ColorPickerProps {
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({ onClose }) => {
-  const { selectedObject } = useContext(ColorPickerContext);
-  const { nodes, materials } = useGLTF(
+  const { selectedObject, colorMap, setColorMap } =
+    useContext(ColorPickerContext);
+
+  const { nodes } = useGLTF(
     ObjectsMap[selectedObject]
   ) as GLTFResult["KamisamaPlanet"];
 
-  const [selectedMaterial, setSelectedMaterial] =
-    useState<keyof typeof materials>("Material.002");
-  const [color, setColor] = useState("#ff0000");
+  const nodesArray = Object.values(nodes).filter(
+    (node) => node.type === "Mesh" && node.material
+  );
 
-  const getMeshColor = (materialIndex: keyof typeof materials) => {
-    return materials[materialIndex].color;
-  };
-
-  const setMeshColor = (
-    color: string,
-    materialIndex: keyof typeof materials
-  ) => {
-    const materialColor = new THREE.Color(color);
-    materials[materialIndex].color = materialColor;
-    materials[materialIndex].needsUpdate = true;
-  };
-
-  const nodesArray = Object.values(nodes);
-
-  const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMaterial(e.target.value as keyof typeof materials);
-  };
-
-  const handleColorChange = (color: { hex: string }) => {
-    setColor(color.hex);
-    setMeshColor(color.hex, selectedMaterial);
+  const handleColorChange = (meshName: string, newColor: string) => {
+    setColorMap((prev) => ({
+      ...prev,
+      [meshName]: newColor,
+    }));
   };
 
   return ReactDOM.createPortal(
@@ -54,36 +37,26 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ onClose }) => {
           onClose();
         }}
       />
-      <div className="bg-white p-4 rounded-lg shadow-lg z-10">
-        <button onClick={onClose}>Close</button>
-        {/* {/* <select value={selectedMaterial} onChange={handleMaterialChange}>
-          {Object.keys(materials).map((materialKey) => (
-            <option key={materialKey} value={materialKey}>
-              {materialKey}
-            </option>
-          ))}
-        </select>
-        <ChromePicker color={color} onChange={handleColorChange} /> */}
+      <div className="bg-white p-6 rounded-lg shadow-lg z-10 max-h-[80vh] overflow-y-auto w-[400px]">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">Edit Mesh Colors</h2>
+          <button className="text-red-500 hover:underline" onClick={onClose}>
+            Close
+          </button>
+        </div>
+
         {nodesArray.map((mesh) => (
           <div
             key={mesh.uuid}
-            className="flex items-center justify-center my-2"
+            className="flex items-center justify-between my-2"
           >
-            {/* <div
-              className="w-10 h-10 rounded-full"
-              style={{
-                backgroundColor: (
-                  mesh.material as THREE.MeshStandardMaterial
-                ).color.getStyle(),
-              }}
-              onClick={() =>
-                setSelectedMaterial(
-                  (mesh.material as THREE.MeshStandardMaterial)
-                    .name as keyof typeof materials
-                )
-              }
-            /> */}
-            <span className="ml-2">{mesh.name}</span>
+            <span className="text-sm font-medium">{mesh.name}</span>
+            <input
+              type="color"
+              value={colorMap[mesh.name] || "#ffffff"}
+              onChange={(e) => handleColorChange(mesh.name, e.target.value)}
+              className="ml-4 w-10 h-6 border rounded"
+            />
           </div>
         ))}
       </div>
@@ -91,3 +64,5 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ onClose }) => {
     document.body
   );
 };
+
+export default ColorPicker;

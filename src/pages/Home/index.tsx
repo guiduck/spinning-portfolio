@@ -1,4 +1,5 @@
 import { Loader } from "@/components";
+import { Cloud } from "@/components/Cloud";
 import Bird from "@/models/Bird";
 import { KamisamaPlanet } from "@/models/KamisamaPlanet";
 import Plane from "@/models/Plane";
@@ -84,8 +85,8 @@ export const Home: React.FC = () => {
             }
             intensity={2}
           />
-          <ambientLight intensity={0.5} />
-          <hemisphereLight args={["#b1e1ff", "#000000", 1]} />
+          {/* <ambientLight intensity={0.5} />
+          <hemisphereLight args={["#b1e1ff", "#000000", 1]} /> */}
           <pointLight />
           <Sky />
           <Bird />
@@ -98,6 +99,39 @@ export const Home: React.FC = () => {
             currentStage={currentStage}
             setCurrentStage={setCurrentStage}
           />
+          <Cloud
+            emissionSize={[10, 5]}
+            voxelSize={0.08}
+            position={planetPosition}
+            count={60}
+            resolution={1.5}
+            floatStrength={0.1}
+            particleLifetime={[10, 25]}
+            particleSize={[6, 3, 3]}
+          />
+          <>
+            <Cloud
+              emissionSize={[0.2, 0.01]}
+              voxelSize={0.015}
+              position={planePosition}
+              count={8}
+              resolution={1}
+              floatStrength={0.008}
+              particleLifetime={[4, 7]}
+              color="#ddc06f"
+            />
+            <Cloud
+              emissionSize={[0.08, 0.005]}
+              voxelSize={0.015}
+              position={planePosition}
+              count={3}
+              resolution={1}
+              floatStrength={0.01}
+              particleLifetime={[4, 7]}
+              shape="box"
+              color="#ddc06f"
+            />
+          </>
           <Plane
             scale={planeScale}
             position={planePosition}

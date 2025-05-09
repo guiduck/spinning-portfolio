@@ -6,7 +6,7 @@ Source: https://sketchfab.com/3d-models/kamisama-no-shinden-b6dbdf5e61c845d5925d
 Title: Kamisama no Shinden
 */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 
@@ -14,8 +14,8 @@ import KamisamaPlanetScene from "@/assets/3d/kamisamaPlanet.glb";
 
 import * as THREE from "three";
 
-import { a } from "@react-spring/three";
 import { KamisamaPlanetGLTFResult, KamisamaPlanetProps } from "./types";
+import { ColorPickerContext } from "@/context/colorsContext";
 
 export const KamisamaPlanet: React.FC<
   KamisamaPlanetProps & JSX.IntrinsicElements["group"]
@@ -33,9 +33,22 @@ export const KamisamaPlanet: React.FC<
     KamisamaPlanetScene
   ) as KamisamaPlanetGLTFResult;
 
+  const { colorMap } = useContext(ColorPickerContext);
+
   const lastX = useRef(0);
   const rotationSpeed = useRef(0);
   const dampingFactor = 0.95;
+
+  useFrame(() => {
+    if (!planetRef.current) return;
+
+    // Smooth rotation with damping (linear interpolation)
+    planetRef.current.rotation.y = THREE.MathUtils.lerp(
+      planetRef.current.rotation.y,
+      planetRef.current.rotation.y + rotationSpeed.current,
+      0.1 // smoothing factor
+    );
+  });
 
   const handlePointerDown = (e: TouchEvent & MouseEvent) => {
     e.stopPropagation();
@@ -50,6 +63,16 @@ export const KamisamaPlanet: React.FC<
     e.stopPropagation();
     e.preventDefault();
     setIsRotating(false);
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+
+    const delta = (clientX - lastX.current) / viewport.width;
+
+    planetRef.current.rotation.y += delta * 0.005 * Math.PI;
+
+    lastX.current = clientX;
+
+    rotationSpeed.current = delta * 0.005 * Math.PI;
   };
 
   const handlePointerMove = (e: TouchEvent & MouseEvent) => {
@@ -164,21 +187,35 @@ export const KamisamaPlanet: React.FC<
     return new THREE.CanvasTexture(canvas);
   };
 
-  useEffect(() => {
-    // const color = "#ff0000"; // Example color
-    // const dynamicTexture = createDynamicTexture(color);
+  // useEffect(() => {
+  // const color = "#ff0000"; // Example color
+  // const dynamicTexture = createDynamicTexture(color);
 
-    // // Apply the dynamic texture to a specific material
-    // materials["Material.002"].map = dynamicTexture;
-    // materials["Material.002"].needsUpdate = true;
-    const color = new THREE.Color("#ff0000"); // Example color
+  // // Apply the dynamic texture to a specific material
+  // materials["Material.002"].map = dynamicTexture;
+  // materials["Material.002"].needsUpdate = true;
+  //   const color = new THREE.Color("#ff0000"); // Example color
 
-    // Change the color of the material
-    materials["Material.002"].color = color;
-  }, [materials]);
+  //   // Change the color of the material
+  //   materials["Material.002"].color = color;
+  // }, [materials]);
+
+  const applyMeshColor = (
+    materialName: keyof typeof materials,
+    meshName: string
+  ) => ({
+    onBeforeRender: () => {
+      if (colorMap[meshName]) {
+        materials[materialName].color.set(colorMap[meshName]);
+      }
+    },
+    name: meshName,
+    geometry: nodes[meshName as keyof typeof nodes].geometry,
+    material: materials[materialName],
+  });
 
   return (
-    <a.group {...props} ref={planetRef}>
+    <group {...props} ref={planetRef}>
       <group name="Sketchfab_Scene">
         <group name="Sketchfab_model" rotation={[-Math.PI / 2, 0, 0]}>
           <group name="Root">
@@ -187,187 +224,101 @@ export const KamisamaPlanet: React.FC<
               position={[0, 0, 1]}
               scale={[1, 1, 0.77044]}
             >
+              <mesh {...applyMeshColor("Material.002", "Icosphere_1")} />
               <mesh
-                name="Icosphere_1"
-                geometry={nodes.Icosphere_1.geometry}
-                material={materials["Material.002"]}
-              />
-              <mesh
-                name="Icosphere_2"
-                geometry={nodes.Icosphere_2.geometry}
                 // material={materials["Material.013"]}
-                material={materials["Material.002"]}
+                {...applyMeshColor("Material.002", "Icosphere_2")}
               />
             </group>
             <group name="Icosphere001" position={[0, 0, 1]}>
-              <mesh
-                name="Icosphere001_1"
-                geometry={nodes.Icosphere001_1.geometry}
-                material={materials["Material.001"]}
-              />
+              <mesh {...applyMeshColor("Material.001", "Icosphere001_1")} />
             </group>
             <group
               name="Cylinder"
               position={[-0.5667, 0.17673, 1.29974]}
               scale={[0.01306, 0.01306, 0.26725]}
             >
-              <mesh
-                name="Cylinder_1"
-                geometry={nodes.Cylinder_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Cylinder_1")} />
             </group>
             <group
               name="Sphere"
               position={[-0.56679, 0.17673, 1.61985]}
               scale={[0.09288, 0.09288, 0.06195]}
             >
-              <mesh
-                name="Sphere_1"
-                geometry={nodes.Sphere_1.geometry}
-                material={materials["Material.015"]}
-              />
-              <mesh
-                name="Sphere_2"
-                geometry={nodes.Sphere_2.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.015", "Sphere_1")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere_2")} />
             </group>
             <group
               name="Sphere001"
               position={[-0.37239, 0.56555, 1.61985]}
               scale={[0.09288, 0.09288, 0.06195]}
             >
-              <mesh
-                name="Sphere001_1"
-                geometry={nodes.Sphere001_1.geometry}
-                material={materials["Material.015"]}
-              />
-              <mesh
-                name="Sphere001_2"
-                geometry={nodes.Sphere001_2.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.015", "Sphere001_1")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere001_2")} />
             </group>
             <group
               name="Cylinder001"
               position={[-0.37229, 0.56555, 1.29974]}
               scale={[0.01306, 0.01306, 0.26725]}
             >
-              <mesh
-                name="Cylinder001_1"
-                geometry={nodes.Cylinder001_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Cylinder001_1")} />
             </group>
             <group
               name="Cylinder002"
               position={[0.37265, 0.56555, 1.29974]}
               scale={[-0.01306, 0.01306, 0.26725]}
             >
-              <mesh
-                name="Cylinder002_1"
-                geometry={nodes.Cylinder002_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Cylinder002_1")} />
             </group>
             <group
               name="Sphere002"
               position={[0.37275, 0.56555, 1.61985]}
               scale={[-0.09288, 0.09288, 0.06195]}
             >
-              <mesh
-                name="Sphere002_1"
-                geometry={nodes.Sphere002_1.geometry}
-                material={materials["Material.015"]}
-              />
-              <mesh
-                name="Sphere002_2"
-                geometry={nodes.Sphere002_2.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.015", "Sphere002_1")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere002_2")} />
             </group>
             <group
               name="Sphere003"
               position={[0.56716, 0.17673, 1.61985]}
               scale={[-0.09288, 0.09288, 0.06195]}
             >
-              <mesh
-                name="Sphere003_1"
-                geometry={nodes.Sphere003_1.geometry}
-                material={materials["Material.014"]}
-              />
-              <mesh
-                name="Sphere003_2"
-                geometry={nodes.Sphere003_2.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.014", "Sphere003_1")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere003_2")} />
             </group>
             <group
               name="Cylinder003"
               position={[0.56706, 0.17673, 1.29974]}
               scale={[-0.01306, 0.01306, 0.26725]}
             >
-              <mesh
-                name="Cylinder003_1"
-                geometry={nodes.Cylinder003_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Cylinder003_1")} />
             </group>
             <group name="Icosphere002" position={[0, 0, 1.11118]}>
-              <mesh
-                name="Icosphere002_1"
-                geometry={nodes.Icosphere002_1.geometry}
-                material={materials["Material.003"]}
-              />
-              <mesh
-                name="Icosphere002_2"
-                geometry={nodes.Icosphere002_2.geometry}
-                material={materials["Material.006"]}
-              />
+              <mesh {...applyMeshColor("Material.003", "Icosphere002_1")} />
+              <mesh {...applyMeshColor("Material.006", "Icosphere002_2")} />
             </group>
             <group
               name="Cylinder004"
               position={[0, 0, -0.37996]}
               scale={[0.05184, 0.05184, 0.61591]}
             >
-              <mesh
-                name="Cylinder004_1"
-                geometry={nodes.Cylinder004_1.geometry}
-                material={materials["Material.005"]}
-              />
+              <mesh {...applyMeshColor("Material.005", "Cylinder004_1")} />
             </group>
             <group
               name="Cube"
               position={[0, 0.19637, 1.04452]}
               scale={[0.33133, 0.12744, 0.00622]}
             >
-              <mesh
-                name="Cube_1"
-                geometry={nodes.Cube_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Cube_1")} />
             </group>
             <group
               name="Sphere004"
               position={[0, 0.17919, 1.35099]}
               scale={0.07778}
             >
-              <mesh
-                name="Sphere004_1"
-                geometry={nodes.Sphere004_1.geometry}
-                material={materials["Material.011"]}
-              />
-              <mesh
-                name="Sphere004_2"
-                geometry={nodes.Sphere004_2.geometry}
-                material={materials["Material.010"]}
-              />
-              <mesh
-                name="Sphere004_3"
-                geometry={nodes.Sphere004_3.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.011", "Sphere004_1")} />
+              <mesh {...applyMeshColor("Material.010", "Sphere004_2")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere004_3")} />
             </group>
             <group
               name="Cylinder005"
@@ -375,16 +326,8 @@ export const KamisamaPlanet: React.FC<
               rotation={[Math.PI / 2, 0, 0]}
               scale={[0.06539, 0.03664, 0.11849]}
             >
-              <mesh
-                name="Cylinder005_1"
-                geometry={nodes.Cylinder005_1.geometry}
-                material={materials["Material.010"]}
-              />
-              <mesh
-                name="Cylinder005_2"
-                geometry={nodes.Cylinder005_2.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.010", "Cylinder005_1")} />
+              <mesh {...applyMeshColor("Material.012", "Cylinder005_2")} />
             </group>
             <group
               name="Cylinder006"
@@ -392,16 +335,8 @@ export const KamisamaPlanet: React.FC<
               rotation={[Math.PI / 2, -Math.PI / 2, 0]}
               scale={[0.06539, 0.03664, 0.11849]}
             >
-              <mesh
-                name="Cylinder006_1"
-                geometry={nodes.Cylinder006_1.geometry}
-                material={materials["Material.012"]}
-              />
-              <mesh
-                name="Cylinder006_2"
-                geometry={nodes.Cylinder006_2.geometry}
-                material={materials["Material.010"]}
-              />
+              <mesh {...applyMeshColor("Material.012", "Cylinder006_1")} />
+              <mesh {...applyMeshColor("Material.010", "Cylinder006_2")} />
             </group>
             <group
               name="Cylinder007"
@@ -409,58 +344,26 @@ export const KamisamaPlanet: React.FC<
               rotation={[Math.PI / 2, Math.PI / 2, 0]}
               scale={[0.06539, 0.03664, 0.11849]}
             >
-              <mesh
-                name="Cylinder007_1"
-                geometry={nodes.Cylinder007_1.geometry}
-                material={materials["Material.012"]}
-              />
-              <mesh
-                name="Cylinder007_2"
-                geometry={nodes.Cylinder007_2.geometry}
-                material={materials["Material.010"]}
-              />
+              <mesh {...applyMeshColor("Material.012", "Cylinder007_1")} />
+              <mesh {...applyMeshColor("Material.010", "Cylinder007_2")} />
             </group>
             <group
               name="Sphere005"
               position={[0.21274, 0.46965, 1.33258]}
               scale={0.05511}
             >
-              <mesh
-                name="Sphere005_1"
-                geometry={nodes.Sphere005_1.geometry}
-                material={materials["Material.009"]}
-              />
-              <mesh
-                name="Sphere005_2"
-                geometry={nodes.Sphere005_2.geometry}
-                material={materials["Material.010"]}
-              />
-              <mesh
-                name="Sphere005_3"
-                geometry={nodes.Sphere005_3.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.009", "Sphere005_1")} />
+              <mesh {...applyMeshColor("Material.010", "Sphere005_2")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere005_3")} />
             </group>
             <group
               name="Sphere006"
               position={[-0.21354, 0.46965, 1.33258]}
               scale={0.05511}
             >
-              <mesh
-                name="Sphere006_1"
-                geometry={nodes.Sphere006_1.geometry}
-                material={materials["Material.009"]}
-              />
-              <mesh
-                name="Sphere006_2"
-                geometry={nodes.Sphere006_2.geometry}
-                material={materials["Material.010"]}
-              />
-              <mesh
-                name="Sphere006_3"
-                geometry={nodes.Sphere006_3.geometry}
-                material={materials["Material.012"]}
-              />
+              <mesh {...applyMeshColor("Material.009", "Sphere006_1")} />
+              <mesh {...applyMeshColor("Material.010", "Sphere006_2")} />
+              <mesh {...applyMeshColor("Material.012", "Sphere006_3")} />
             </group>
             <group
               name="Plane"
@@ -468,11 +371,7 @@ export const KamisamaPlanet: React.FC<
               rotation={[Math.PI / 2, 0, 0]}
               scale={[0.07735, 0.09738, 0.05606]}
             >
-              <mesh
-                name="Plane_1"
-                geometry={nodes.Plane_1.geometry}
-                material={materials["Material.007"]}
-              />
+              <mesh {...applyMeshColor("Material.007", "Plane_1")} />
             </group>
             <group
               name="Plane001"
@@ -480,11 +379,7 @@ export const KamisamaPlanet: React.FC<
               rotation={[Math.PI / 2, -Math.PI / 2, 0]}
               scale={[0.07735, 0.09738, 0.05606]}
             >
-              <mesh
-                name="Plane001_1"
-                geometry={nodes.Plane001_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Material.007", "Plane001_1")} />
             </group>
             <group
               name="Plane002"
@@ -492,59 +387,31 @@ export const KamisamaPlanet: React.FC<
               rotation={[Math.PI / 2, Math.PI / 2, 0]}
               scale={[0.07735, 0.09738, 0.05606]}
             >
-              <mesh
-                name="Plane002_1"
-                geometry={nodes.Plane002_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Material.007", "Plane002_1")} />
             </group>
             <group name="Plane003" scale={[0.11736, 0.03152, 0.03152]}>
-              <mesh
-                name="Plane003_1"
-                geometry={nodes.Plane003_1.geometry}
-                material={materials["Material.003"]}
-              />
-              <mesh
-                name="Plane003_2"
-                geometry={nodes.Plane003_2.geometry}
-                material={materials["Material.008"]}
-              />
+              <mesh {...applyMeshColor("Material.003", "Plane003_1")} />
+              <mesh {...applyMeshColor("Material.008", "Plane003_2")} />
             </group>
             <group name="Cube001" position={[0, 0, 2.73391]} scale={0.00277}>
-              <mesh
-                name="Cube001_1"
-                geometry={nodes.Cube001_1.geometry}
-                material={materials.Material}
-              />
+              <mesh {...applyMeshColor("Material", "Cube001_1")} />
             </group>
             <group name="Plane004" position={[0, 0, 4.17959]} scale={0.03113}>
-              <mesh
-                name="Plane004_1"
-                geometry={nodes.Plane004_1.geometry}
-                material={materials["Material.004"]}
-              />
+              <mesh {...applyMeshColor("Material.004", "Plane004_1")} />
             </group>
             <group
               name="Cube002"
               position={[0, 0, 1.11421]}
               scale={[0.00377, 0.00377, 0.06348]}
             >
-              <mesh
-                name="Cube002_1"
-                geometry={nodes.Cube002_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Cube002_1")} />
             </group>
             <group
               name="Icosphere003"
               position={[0, 0, -0.4295]}
               scale={[1, 1, 0.151]}
             >
-              <mesh
-                name="Icosphere003_1"
-                geometry={nodes.Icosphere003_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Icosphere003_1")} />
             </group>
             <group
               name="Icosphere004"
@@ -552,11 +419,7 @@ export const KamisamaPlanet: React.FC<
               rotation={[0, 0, -Math.PI]}
               scale={[0.30842, 0.30842, 0.08093]}
             >
-              <mesh
-                name="Icosphere004_1"
-                geometry={nodes.Icosphere004_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Icosphere004_1")} />
             </group>
             <group
               name="Icosphere005"
@@ -564,11 +427,7 @@ export const KamisamaPlanet: React.FC<
               rotation={[-2.96707, 0, -Math.PI]}
               scale={[0.30842, 0.30842, 0.08093]}
             >
-              <mesh
-                name="Icosphere005_1"
-                geometry={nodes.Icosphere005_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Icosphere005_1")} />
             </group>
             <group
               name="Icosphere006"
@@ -576,11 +435,7 @@ export const KamisamaPlanet: React.FC<
               rotation={[-Math.PI, 0, Math.PI / 2]}
               scale={[0.19582, 0.60752, 0.08093]}
             >
-              <mesh
-                name="Icosphere006_1"
-                geometry={nodes.Icosphere006_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Icosphere006_1")} />
             </group>
             <group
               name="Icosphere007"
@@ -588,27 +443,19 @@ export const KamisamaPlanet: React.FC<
               rotation={[-0.00001, 0.17453, -1.57079]}
               scale={[0.19324, 0.47054, 0.08258]}
             >
-              <mesh
-                name="Icosphere007_1"
-                geometry={nodes.Icosphere007_1.geometry}
-                material={materials["Icosphere.007"]}
-              />
+              <mesh {...applyMeshColor("Icosphere.007", "Icosphere007_1")} />
             </group>
             <group
               name="Icosphere008"
               position={[0, 0.17934, 1.49151]}
               scale={0.01437}
             >
-              <mesh
-                name="Icosphere008_1"
-                geometry={nodes.Icosphere008_1.geometry}
-                material={materials["Material.010"]}
-              />
+              <mesh {...applyMeshColor("Material.010", "Icosphere008_1")} />
             </group>
           </group>
         </group>
       </group>
-    </a.group>
+    </group>
   );
 };
 
